@@ -17,7 +17,7 @@ type SortType = 'created' | 'due' | 'priority' | 'alpha'
 interface Props {
   initialTasks: Task[]
   initialLogs: Log[]
-  user: { id: string; email: string }
+  user: { id: string; email: string; name?: string }
 }
 
 const PRIO_ORDER: Record<Priority, number> = { high: 0, medium: 1, low: 2 }
