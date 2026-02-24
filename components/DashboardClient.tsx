@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useClerk } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { Task, Log, Priority, Category, Recurrence } from '@/lib/types'
 import { formatDistanceToNow, format, isPast } from 'date-fns'
@@ -47,7 +47,7 @@ export default function DashboardClient({ initialTasks, initialLogs, user }: Pro
   const [userEmail, setUserEmail] = useState('')
   const remindTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const router = useRouter()
-  const supabase = createClient()
+  const { signOut: clerkSignOut } = useClerk()
 
   // Form state
   const [form, setForm] = useState({
@@ -171,7 +171,7 @@ export default function DashboardClient({ initialTasks, initialLogs, user }: Pro
 
   // ── Sign out ─────────────────────────────────────────────
   async function signOut() {
-    await supabase.auth.signOut()
+    await clerkSignOut()
     router.push('/auth')
   }
 

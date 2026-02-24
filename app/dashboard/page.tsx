@@ -1,25 +1,26 @@
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/client-server'
 import DashboardClient from '@/components/DashboardClient'
 import { Task, Log } from '@/lib/types'
 
 export default async function DashboardPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/auth')
+  const { userId } = auth()
+  if (!userId) redirect('/sign-in')
 
-  // Fetch initial tasks
+  const user = await currentUser()
+  const supabase = createClient()
+
   const { data: tasks } = await supabase
     .from('tasks')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
-  // Fetch recent logs (last 100)
   const { data: logs } = await supabase
     .from('logs')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(100)
 
@@ -27,7 +28,11 @@ export default async function DashboardPage() {
     <DashboardClient
       initialTasks={(tasks ?? []) as Task[]}
       initialLogs={(logs ?? []) as Log[]}
-      user={{ id: user.id, email: user.email ?? '' }}
+      user={{
+        id: userId,
+        email: user?.emailAddresses[0]?.emailAddress ?? '',
+        name: user?.firstName ?? '',
+      }}
     />
   )
 }
